@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS Transactions (
 
 -- Create the Checks table
 CREATE TABLE IF NOT EXISTS Checks (
-    Transaction_ID INT REFERENCES Transactions(Transaction_ID) PRIMARY KEY,
+    Transaction_ID INT REFERENCES Transactions(Transaction_ID),
     SKU_ID INT REFERENCES Products(SKU_ID) NOT NULL,
     SKU_Amount NUMERIC(10, 2) NOT NULL,
     SKU_Summ NUMERIC(10, 2) NOT NULL,
