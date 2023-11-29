@@ -108,12 +108,9 @@ DROP VIEW IS EXISTS v_customers;
 
 CREATE OR REPLACE VIEW v_customers AS
 WITH average_check AS
-(SELECT customer_id, customer_average_check
-FROM (SELECT customer_id,
-	  		 avg(transaction_summ) OVER (PARTITION BY customer_id) AS customer_average_check
-	  FROM customer_transactions()
-	  ORDER BY 1)
-GROUP BY customer_id, customer_average_check
+(SELECT DISTINCT customer_id,
+	  		 	avg(transaction_summ) OVER (PARTITION BY customer_id) AS customer_average_check
+FROM customer_transactions()
 ORDER BY 1),
 customers_ranking_check AS
 (SELECT customer_id, 
@@ -130,13 +127,10 @@ average_check_segment AS
 		END) AS customer_average_check_segment
 FROM customers_ranking_check),
 frequency AS
-(SELECT customer_id, customer_frequency
-FROM (SELECT customer_id,
-	   		 (EXTRACT (EPOCH FROM (max(transaction_datetime) OVER w - min(transaction_datetime) OVER w)/86400) / count(transaction_id) OVER w) AS customer_frequency
-	  FROM customer_transactions()
-	  WINDOW w AS (PARTITION BY customer_id)								 
-	  ORDER BY 1)
-GROUP BY customer_id, customer_frequency
+(SELECT DISTINCT customer_id,
+	   		 	(EXTRACT (EPOCH FROM (max(transaction_datetime) OVER w - min(transaction_datetime) OVER w)/86400) / count(transaction_id) OVER w) AS customer_frequency
+FROM customer_transactions()
+WINDOW w AS (PARTITION BY customer_id)								 
 ORDER BY 1),
 customers_ranking_frequency AS	  			
 (SELECT customer_id, 
@@ -153,12 +147,9 @@ frequency_segment AS
 		END) AS customer_frequency_segment
 FROM customers_ranking_frequency),
 inactive_period AS
-(SELECT customer_id, customer_inactive_period	
-FROM (SELECT customer_id,
-			 (EXTRACT (EPOCH FROM (analyzed_period() - max(transaction_datetime) OVER (PARTITION BY customer_id))/86400)) AS customer_inactive_period
-	  FROM customer_transactions()								 
-	  ORDER BY 1)
-GROUP BY customer_id, customer_inactive_period
+(SELECT DISTINCT customer_id,
+			 	(EXTRACT (EPOCH FROM (analyzed_period() - max(transaction_datetime) OVER (PARTITION BY customer_id))/86400)) AS customer_inactive_period
+FROM customer_transactions()								 
 ORDER BY 1),
 churn_rate AS
 (SELECT ip.customer_id, 
