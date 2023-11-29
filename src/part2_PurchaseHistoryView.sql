@@ -12,7 +12,7 @@ JOIN checks ch ON ct.transaction_id = ch.transaction_id
 JOIN products p ON ch.sku_id = p.sku_id 
 JOIN stores s ON ch.sku_id = s.sku_id 
 				AND ct.transaction_store_id = s.transaction_store_id
-WINDOW w AS (PARTITION BY customer_id, group_id)
+WINDOW w AS (PARTITION BY customer_id, ct.transaction_id, group_id)
 ORDER BY customer_id, transaction_id, group_id;
 
 SELECT *
