@@ -1,0 +1,17 @@
+version: '3.1'
+services:
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - ./part1.sql:/docker-entrypoint-initdb.d/part1.sql
+      - ./part2_1_CustomersView.sql:/docker-entrypoint-initdb.d/part2_1_CustomersView.sql
+      - ./part2_2_PurchaseHistoryView.sql:/docker-entrypoint-initdb.d/part2_2_PurchaseHistoryView.sql
+      - ./part2_3_PeriodsView.sql:/docker-entrypoint-initdb.d/part2_3_PeriodsView.sql
+      - ../../datasets:/home/
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: retail
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
