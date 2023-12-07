@@ -104,7 +104,7 @@ JOIN last_max_share lms ON cs.customer_id = lms.customer_id
 ORDER BY 1
 $$ LANGUAGE SQL;
 
-DROP VIEW IS EXISTS v_customers;
+DROP VIEW IF EXISTS v_customers;
 
 CREATE OR REPLACE VIEW v_customers AS
 WITH average_check AS
