@@ -1,3 +1,5 @@
+---Функция, возвращающая таблицу с расчетом фактической маржи по группе для клиента---
+
 CREATE OR REPLACE FUNCTION 
 					customer_margin(IN metod VARCHAR DEFAULT 'transactions', 
 									IN parameter INT DEFAULT 1e+6) 
