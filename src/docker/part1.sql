@@ -101,12 +101,20 @@ CREATE OR REPLACE PROCEDURE export(
 END;
 $$;
 
-CALL import('customers', '/home/Personal_Data.tsv', E'\t');
-CALL import('cards', '/home/Cards.tsv', E'\t');
-CALL import('product_groups', '/home/Groups_SKU.tsv', E'\t');
-CALL import('products', '/home/SKU.tsv', E'\t');
-CALL import('stores', '/home/Stores.tsv', E'\t');
-CALL import('transactions', '/home/Transactions.tsv', E'\t');
-CALL import('checks', '/home/Checks.tsv', E'\t');
-CALL import('analysis_date', '/home/Date_Of_Analysis_Formation.tsv', E'\t');
-CALL import('segments', '/home/Segments.tsv', E'\t');
+DO $$
+DECLARE
+    -- set to '_Mini' to import mini dataset
+    -- set to '' to import- full dataset
+    dataset_type TEXT := '';
+BEGIN
+    CALL import('customers', '/home/Personal_Data' || dataset_type || '.tsv', E'\t');
+    CALL import('cards', '/home/Cards' || dataset_type || '.tsv', E'\t');
+    CALL import('product_groups', '/home/Groups_SKU' || dataset_type || '.tsv', E'\t');
+    CALL import('products', '/home/SKU' || dataset_type || '.tsv', E'\t');
+    CALL import('stores', '/home/Stores' || dataset_type || '.tsv', E'\t');
+    CALL import('transactions', '/home/Transactions' || dataset_type || '.tsv', E'\t');
+    CALL import('checks', '/home/Checks' || dataset_type || '.tsv', E'\t');
+    CALL import('analysis_date', '/home/Date_Of_Analysis_Formation.tsv', E'\t');
+    CALL import('segments', '/home/Segments.tsv', E'\t');
+END $$;
+
