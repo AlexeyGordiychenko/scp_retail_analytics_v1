@@ -136,9 +136,9 @@ SELECT
     customer_average_check,
     CASE WHEN customer_average_check IS NULL THEN
         NULL
-    WHEN rn_ac >= total * 0.90 THEN
+    WHEN total - rn_ac + 1 <= total * 0.1 THEN
         'High'
-    WHEN rn_ac >= total * 0.65 THEN
+    WHEN total - rn_ac + 1 <= total * 0.35 THEN
         'Medium'
     ELSE
         'Low'
