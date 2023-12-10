@@ -16,12 +16,12 @@ SET datestyle = 'ISO, DMY';
 -- Create the customers table
 CREATE TABLE IF NOT EXISTS customers (
     customer_id SERIAL PRIMARY KEY,
-    customer_name VARCHAR(50) NOT NULL CHECK (customer_name ~ '^[A-Za-zА-Яа-яЁё\s\-]+$'),
-    customer_surname VARCHAR(50) NOT NULL CHECK (customer_surname ~ '^[A-Za-zА-Яа-яЁё\s\-]+$'),
-    customer_primary_email VARCHAR(50) UNIQUE CHECK (
+    customer_name VARCHAR NOT NULL CHECK (customer_name ~ '^[A-Za-zА-Яа-яЁё\s\-]+$'),
+    customer_surname VARCHAR NOT NULL CHECK (customer_surname ~ '^[A-Za-zА-Яа-яЁё\s\-]+$'),
+    customer_primary_email VARCHAR UNIQUE CHECK (
         customer_primary_email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'
     ),
-    customer_primary_phone VARCHAR(15) UNIQUE CHECK (customer_primary_phone ~ '^\+7[0-9]{10}$')
+    customer_primary_phone VARCHAR UNIQUE CHECK (customer_primary_phone ~ '^\+7[0-9]{10}$')
 );
 
 -- Create the Cards table
@@ -33,13 +33,13 @@ CREATE TABLE IF NOT EXISTS cards (
 -- Create the product_groups table
 CREATE TABLE IF NOT EXISTS product_groups (
     group_id SERIAL PRIMARY KEY,
-    group_name VARCHAR(50) NOT NULL CHECK (group_name ~ '^[A-Za-zА-Яа-я0-9\s\-\+\=\@\#\$\%\^\&\*\(\)\[\]\{\}\;\:\,\.\<\>\?\/\|\_\~]+$')
+    group_name VARCHAR NOT NULL CHECK (group_name ~ '^[A-Za-zА-Яа-я0-9\s\-\+\=\@\#\$\%\^\&\*\(\)\[\]\{\}\;\:\,\.\<\>\?\/\|\_\~]+$')
 );
 
 -- Create the products table
 CREATE TABLE IF NOT EXISTS products (
     sku_id SERIAL PRIMARY KEY,
-    sku_name VARCHAR(50) NOT NULL CHECK (sku_name ~ '^[A-Za-zА-Яа-я0-9\s\-\+\=\@\#\$\%\^\&\*\(\)\[\]\{\}\;\:\,\.\<\>\?\/\|\_\~]+$'),
+    sku_name VARCHAR NOT NULL CHECK (sku_name ~ '^[A-Za-zА-Яа-я0-9\s\-\+\=\@\#\$\%\^\&\*\(\)\[\]\{\}\;\:\,\.\<\>\?\/\|\_\~]+$'),
     group_id INT REFERENCES product_groups(group_id) NOT NULL
 );
 
@@ -47,15 +47,15 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS stores (
     transaction_store_id SERIAL NOT NULL,
     sku_id SERIAL REFERENCES products(sku_id) NOT NULL,
-    sku_purchase_price NUMERIC(10, 2) NOT NULL CHECK (sku_purchase_price >= 0),
-    sku_retail_price NUMERIC(10, 2) NOT NULL CHECK (sku_retail_price >= 0)
+    sku_purchase_price NUMERIC NOT NULL CHECK (sku_purchase_price >= 0),
+    sku_retail_price NUMERIC NOT NULL CHECK (sku_retail_price >= 0)
 );
 
 -- Create the transactions table
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id SERIAL PRIMARY KEY,
     customer_card_id INT REFERENCES Cards(customer_card_id) NOT NULL,
-    transaction_summ NUMERIC(10, 2) NOT NULL,
+    transaction_summ NUMERIC NOT NULL,
     transaction_datetime TIMESTAMP NOT NULL,
     transaction_store_id SERIAL NOT NULL
 );
@@ -64,10 +64,10 @@ CREATE TABLE IF NOT EXISTS transactions (
 CREATE TABLE IF NOT EXISTS checks (
     transaction_id INT REFERENCES transactions(transaction_id),
     sku_id INT REFERENCES products(sku_id) NOT NULL,
-    sku_amount NUMERIC(10, 2) NOT NULL,
-    sku_summ NUMERIC(10, 2) NOT NULL,
-    sku_summ_paid NUMERIC(10, 2) NOT NULL,
-    sku_discount NUMERIC(10, 2) NOT NULL
+    sku_amount NUMERIC NOT NULL,
+    sku_summ NUMERIC NOT NULL,
+    sku_summ_paid NUMERIC NOT NULL,
+    sku_discount NUMERIC NOT NULL
 );
 
 -- Create the analysis_date table
