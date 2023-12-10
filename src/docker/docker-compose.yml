@@ -8,6 +8,7 @@ services:
       - ./part2_1_CustomersView.sql:/docker-entrypoint-initdb.d/part2_1_CustomersView.sql
       - ./part2_2_PurchaseHistoryView.sql:/docker-entrypoint-initdb.d/part2_2_PurchaseHistoryView.sql
       - ./part2_3_PeriodsView.sql:/docker-entrypoint-initdb.d/part2_3_PeriodsView.sql
+      - ./part2_4_GroupsView.sql:/docker-entrypoint-initdb.d/part2_4_GroupsView.sql
       - ../part3.sql:/docker-entrypoint-initdb.d/part3.sql
       - ../../datasets:/home/
     ports:
