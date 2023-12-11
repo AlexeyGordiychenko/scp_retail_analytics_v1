@@ -48,10 +48,10 @@ BEGIN
                 ROW_NUMBER() OVER(PARTITION BY vph.customer_id, vph.group_id ORDER BY vph.transaction_datetime DESC) AS rn
             FROM
                 v_purchase_history vph) AS b
-        WHERE
-            b.rn <= parameter
-        GROUP BY
-            b.customer_id, b.group_id;
+    WHERE
+        b.rn <= parameter
+    GROUP BY
+        b.customer_id, b.group_id;
     END IF;
 END;
 $$
@@ -67,8 +67,8 @@ WITH purchases AS (
         vph.transaction_datetime,
         vph.group_summ,
         vph.group_summ_paid,
-        sum(ch.sku_discount) AS sku_discount,
-        EXTRACT(EPOCH FROM (vph.transaction_datetime - lag(vph.transaction_datetime, 1) OVER (PARTITION BY vph.customer_id, vph.group_id ORDER BY vph.transaction_datetime))) / 86400 AS interval
+        SUM(ch.sku_discount) AS sku_discount,
+        EXTRACT(EPOCH FROM (vph.transaction_datetime - LAG(vph.transaction_datetime, 1) OVER (PARTITION BY vph.customer_id, vph.group_id ORDER BY vph.transaction_datetime))) / 86400 AS interval
     FROM
         v_purchase_history vph
         LEFT JOIN products p ON vph.group_id = p.group_id
@@ -81,7 +81,7 @@ affinity_transactions AS (
     SELECT
         pu.customer_id,
         pe.group_id,
-        count(DISTINCT pu.transaction_id) AS tr_total
+        COUNT(DISTINCT pu.transaction_id) AS tr_total
     FROM
         purchases pu
         JOIN v_periods pe ON pu.customer_id = pe.customer_id
@@ -94,8 +94,8 @@ stability_idx AS (
     SELECT
         p.customer_id,
         p.group_id,
-        CASE WHEN max(vp.group_frequency) IS NOT NULL THEN
-            coalesce(avg(abs(p.interval - vp.group_frequency) / vp.group_frequency), 1)
+        CASE WHEN MAX(vp.group_frequency) IS NOT NULL THEN
+            COALESCE(AVG(ABS(p.interval - vp.group_frequency) / vp.group_frequency), 1)
         END AS group_stability_index
     FROM
         purchases p
@@ -108,11 +108,11 @@ discounts AS (
     SELECT
         customer_id,
         group_id,
-        count(DISTINCT transaction_id) AS tr_total,
-        CASE WHEN sum(group_summ) = 0 THEN
+        COUNT(DISTINCT transaction_id) AS tr_total,
+        CASE WHEN SUM(group_summ) = 0 THEN
             NULL
         ELSE
-            sum(group_summ_paid) / sum(group_summ)
+            SUM(group_summ_paid) / SUM(group_summ)
         END AS group_average_discount
     FROM
         purchases
@@ -131,7 +131,7 @@ SELECT
     CASE WHEN p.group_purchase = 0 THEN
         NULL
     ELSE
-        coalesce(d.tr_total, 0)::NUMERIC / p.group_purchase
+        COALESCE(d.tr_total, 0)::NUMERIC / p.group_purchase
     END AS group_discount_share,
     CASE WHEN p.group_min_discount > 0 THEN
         p.group_min_discount
@@ -147,4 +147,3 @@ FROM
         AND p.group_id = cm.group_id
     LEFT JOIN discounts d ON p.customer_id = d.customer_id
         AND p.group_id = d.group_id;
-
