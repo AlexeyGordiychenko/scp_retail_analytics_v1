@@ -112,8 +112,8 @@ WITH check_frequency_churn AS (
         ELSE
             customer_inactive_period / customer_frequency
         END AS customer_churn_rate,
-        ROW_NUMBER() OVER (ORDER BY customer_frequency) AS rn_f,
-        ROW_NUMBER() OVER (ORDER BY customer_average_check) AS rn_ac,
+        percent_rank() OVER (PARTITION BY customer_frequency IS NOT NULL ORDER BY customer_frequency DESC) AS pr_f,
+        percent_rank() OVER (PARTITION BY customer_average_check IS NOT NULL ORDER BY customer_average_check) AS pr_ac,
         COUNT(
             CASE WHEN not_null THEN
                 1
@@ -136,9 +136,9 @@ SELECT
     customer_average_check,
     CASE WHEN customer_average_check IS NULL THEN
         NULL
-    WHEN total - rn_ac + 1 <= total * 0.1 THEN
+    WHEN pr_ac >= 0.9 THEN
         'High'
-    WHEN total - rn_ac + 1 <= total * 0.35 THEN
+    WHEN pr_ac >= 0.65 THEN
         'Medium'
     ELSE
         'Low'
@@ -146,9 +146,9 @@ SELECT
     customer_frequency,
     CASE WHEN customer_frequency IS NULL THEN
         NULL
-    WHEN rn_f <= total * 0.1 THEN
+    WHEN pr_f >= 0.9 THEN
         'Often'
-    WHEN rn_f <= total * 0.35 THEN
+    WHEN pr_f >= 0.65 THEN
         'Occasionally'
     ELSE
         'Rarely'
