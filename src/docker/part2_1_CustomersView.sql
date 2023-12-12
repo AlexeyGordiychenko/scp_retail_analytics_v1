@@ -100,6 +100,7 @@ FROM
 $$
 LANGUAGE SQL;
 
+--@block
 CREATE OR REPLACE VIEW v_customers AS
 WITH check_frequency_churn AS (
     SELECT
@@ -171,7 +172,7 @@ check_frequency_churn_segment AS (
 SELECT
     data.*,
     s.segment AS customer_segment,
-    ms.main_store
+    ms.main_store AS customer_primary_store
 FROM
     check_frequency_churn_segment data
     LEFT JOIN segments s ON data.customer_average_check_segment = s.average_check
