@@ -5,9 +5,11 @@ SELECT
     vph.group_id,
     MIN(transaction_datetime) AS first_group_purchase_date,
     MAX(transaction_datetime) AS last_group_purchase_date,
-    COUNT(DISTINCT vph.transaction_id) AS group_purchase,
+    NULLIF(COUNT(DISTINCT vph.transaction_id), 0) AS group_purchase,
     (EXTRACT(EPOCH FROM (MAX(transaction_datetime) - MIN(transaction_datetime)) / 86400) + 1) / COUNT(DISTINCT vph.transaction_id) AS group_frequency,
-    COALESCE(MIN(min_discount.min_discount), 0) AS group_min_discount
+    CASE WHEN vph.group_id IS NOT NULL THEN
+        COALESCE(MIN(min_discount.min_discount), 0)
+    END AS group_min_discount
 FROM
     v_purchase_history vph
     LEFT JOIN (
