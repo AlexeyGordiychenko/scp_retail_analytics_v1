@@ -10,6 +10,7 @@ services:
       - ./part2_3_PeriodsView.sql:/docker-entrypoint-initdb.d/part2_3_PeriodsView.sql
       - ./part2_4_GroupsView.sql:/docker-entrypoint-initdb.d/part2_4_GroupsView.sql
       - ../part3.sql:/docker-entrypoint-initdb.d/part3.sql
+      - ./part5.sql:/docker-entrypoint-initdb.d/part5.sql
       - ./part6.sql:/docker-entrypoint-initdb.d/part6.sql
       - ../../datasets:/home/
     ports:
