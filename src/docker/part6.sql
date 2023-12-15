@@ -63,7 +63,7 @@ CREATE OR REPLACE FUNCTION margin_growth(
             customer_id,
             group_id,
             sku_id,
-            tr / SUM(tr) OVER(PARTITION BY customer_id,
+            tr::NUMERIC / SUM(tr) OVER(PARTITION BY customer_id,
                 group_id) AS sku_share
         FROM(
             SELECT
