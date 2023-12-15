@@ -178,4 +178,5 @@ FROM
     LEFT JOIN segments s ON data.customer_average_check_segment = s.average_check
         AND data.customer_frequency_segment = s.frequency_of_purchases
         AND data.customer_churn_segment = s.churn_probability
-    LEFT JOIN main_store() ms ON data.customer_id = ms.customer_id;
+    LEFT JOIN main_store() ms ON data.customer_id = ms.customer_id
+ORDER BY data.customer_id;

@@ -27,4 +27,5 @@ FROM
             transaction_id, group_id) AS min_discount ON vph.transaction_id = min_discount.transaction_id
     AND vph.group_id = min_discount.group_id
 GROUP BY
-    customer_id, vph.group_id;
+    customer_id, vph.group_id
+ORDER BY customer_id, vph.group_id;    

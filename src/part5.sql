@@ -1,5 +1,5 @@
-CREATE OR REPLACE FUNCTION personal_offers_visits (IN first_date TIMESTAMP,
-													IN last_date TIMESTAMP,
+CREATE OR REPLACE FUNCTION personal_offers_visits (first_date TIMESTAMP,
+													last_date TIMESTAMP,
 													number_transactions INT,
 													max_churn_index NUMERIC,
 													max_share_transactions_with_discount NUMERIC,
