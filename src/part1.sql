@@ -1,94 +1,127 @@
--- DROP DATABASE IF EXISTS Retail_Analytics;
--- CREATE DATABASE Retail_Analytics;
-DROP TABLE IF EXISTS Customers CASCADE;
-DROP TABLE IF EXISTS Cards CASCADE;
-DROP TABLE IF EXISTS Product_Groups CASCADE;
-DROP TABLE IF EXISTS Products CASCADE;
-DROP TABLE IF EXISTS Stores CASCADE;
-DROP TABLE IF EXISTS Transactions CASCADE;
-DROP TABLE IF EXISTS Checks CASCADE;
-DROP TABLE IF EXISTS Analysis_Date CASCADE;
+--@block
+DROP TABLE IF EXISTS customers CASCADE;
+DROP TABLE IF EXISTS cards CASCADE;
+DROP TABLE IF EXISTS product_groups CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS stores CASCADE;
+DROP TABLE IF EXISTS transactions CASCADE;
+DROP TABLE IF EXISTS checks CASCADE;
+DROP TABLE IF EXISTS analysis_date CASCADE;
+DROP TABLE IF EXISTS segments CASCADE;
 DROP PROCEDURE IF EXISTS import;
 DROP PROCEDURE IF EXISTS export;
 
+--@block
 SET datestyle = 'ISO, DMY';
 
--- Create the Customers table
-CREATE TABLE IF NOT EXISTS Customers (
-    Customer_ID SERIAL PRIMARY KEY,
-    Customer_Name VARCHAR(50) NOT NULL CHECK (Customer_Name ~ '^[A-Za-zА-Яа-яЁё\s\-]+$'),
-    Customer_Surname VARCHAR(50) NOT NULL CHECK (Customer_Surname ~ '^[A-Za-zА-Яа-яЁё\s\-]+$'),
-    Customer_Primary_Email VARCHAR(50) UNIQUE CHECK (
-        Customer_Primary_Email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'
-    ),
-    Customer_Primary_Phone VARCHAR(15) UNIQUE CHECK (Customer_Primary_Phone ~ '^\+7[0-9]{10}$')
+-- Create the customers table
+CREATE TABLE IF NOT EXISTS customers(
+    customer_id SERIAL PRIMARY KEY,
+    customer_name VARCHAR NOT NULL CHECK (customer_name ~ '^[A-Za-zА-Яа-яЁё\s\-]+$'),
+    customer_surname VARCHAR NOT NULL CHECK (customer_surname ~ '^[A-Za-zА-Яа-яЁё\s\-]+$'),
+    customer_primary_email VARCHAR UNIQUE CHECK (customer_primary_email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'),
+    customer_primary_phone VARCHAR UNIQUE CHECK (customer_primary_phone ~ '^\+7[0-9]{10}$')
 );
 
 -- Create the Cards table
-CREATE TABLE IF NOT EXISTS Cards (
-    Customer_Card_ID SERIAL PRIMARY KEY,
-    Customer_ID INT REFERENCES Customers(Customer_ID) NOT NULL
+CREATE TABLE IF NOT EXISTS cards(
+    customer_card_id SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id) NOT NULL
 );
 
--- Create the Product_Groups table
-CREATE TABLE IF NOT EXISTS Product_Groups (
-    Group_ID SERIAL PRIMARY KEY,
-    Group_Name VARCHAR(50) NOT NULL CHECK (Group_Name ~ '^[A-Za-zА-Яа-я0-9\s\-\+\=\@\#\$\%\^\&\*\(\)\[\]\{\}\;\:\,\.\<\>\?\/\|\_\~]+$')
+-- Create the product_groups table
+CREATE TABLE IF NOT EXISTS product_groups(
+    group_id SERIAL PRIMARY KEY,
+    group_name VARCHAR NOT NULL CHECK (group_name ~ '^[A-Za-zА-Яа-я0-9\s\-\+\=\@\#\$\%\^\&\*\(\)\[\]\{\}\;\:\,\.\<\>\?\/\|\_\~]+$')
 );
 
--- Create the Products table
-CREATE TABLE IF NOT EXISTS Products (
-    SKU_ID SERIAL PRIMARY KEY,
-    SKU_Name VARCHAR(50) NOT NULL CHECK (SKU_Name ~ '^[A-Za-zА-Яа-я0-9\s\-\+\=\@\#\$\%\^\&\*\(\)\[\]\{\}\;\:\,\.\<\>\?\/\|\_\~]+$'),
-    Group_ID INT REFERENCES Product_Groups(Group_ID) NOT NULL
+-- Create the products table
+CREATE TABLE IF NOT EXISTS products(
+    sku_id SERIAL PRIMARY KEY,
+    sku_name VARCHAR NOT NULL CHECK (sku_name ~ '^[A-Za-zА-Яа-я0-9\s\-\+\=\@\#\$\%\^\&\*\(\)\[\]\{\}\;\:\,\.\<\>\?\/\|\_\~]+$'),
+    group_id INT REFERENCES product_groups(group_id) NOT NULL
 );
 
 -- Create the Stores table
-CREATE TABLE IF NOT EXISTS Stores (
-    Transaction_Store_ID SERIAL NOT NULL,
-    SKU_ID SERIAL REFERENCES Products(SKU_ID) NOT NULL,
-    SKU_Purchase_Price NUMERIC(10, 2) NOT NULL CHECK (SKU_Purchase_Price >= 0),
-    SKU_Retail_Price NUMERIC(10, 2) NOT NULL CHECK (SKU_Retail_Price >= 0)
+CREATE TABLE IF NOT EXISTS stores(
+    transaction_store_id SERIAL NOT NULL,
+    sku_id SERIAL REFERENCES products(sku_id) NOT NULL,
+    sku_purchase_price NUMERIC NOT NULL CHECK (sku_purchase_price >= 0),
+    sku_retail_price NUMERIC NOT NULL CHECK (sku_retail_price >= 0)
 );
 
--- Create the Transactions table
-CREATE TABLE IF NOT EXISTS Transactions (
-    Transaction_ID SERIAL PRIMARY KEY,
-    Customer_Card_ID INT REFERENCES Cards(Customer_Card_ID) NOT NULL,
-    Transaction_Summ NUMERIC(10, 2) NOT NULL,
-    Transaction_DateTime TIMESTAMP NOT NULL,
-    Transaction_Store_ID SERIAL NOT NULL
+-- Create the transactions table
+CREATE TABLE IF NOT EXISTS transactions(
+    transaction_id SERIAL PRIMARY KEY,
+    customer_card_id INT REFERENCES Cards(customer_card_id) NOT NULL,
+    transaction_summ NUMERIC NOT NULL,
+    transaction_datetime TIMESTAMP NOT NULL,
+    transaction_store_id SERIAL NOT NULL
 );
 
--- Create the Checks table
-CREATE TABLE IF NOT EXISTS Checks (
-    Transaction_ID INT REFERENCES Transactions(Transaction_ID),
-    SKU_ID INT REFERENCES Products(SKU_ID) NOT NULL,
-    SKU_Amount NUMERIC(10, 2) NOT NULL,
-    SKU_Summ NUMERIC(10, 2) NOT NULL,
-    SKU_Summ_Paid NUMERIC(10, 2) NOT NULL,
-    SKU_Discount NUMERIC(10, 2) NOT NULL
+-- Create the checks table
+CREATE TABLE IF NOT EXISTS checks(
+    transaction_id INT REFERENCES transactions(transaction_id),
+    sku_id INT REFERENCES products(sku_id) NOT NULL,
+    sku_amount NUMERIC NOT NULL,
+    sku_summ NUMERIC NOT NULL,
+    sku_summ_paid NUMERIC NOT NULL,
+    sku_discount NUMERIC NOT NULL
 );
 
--- Create the Analysis_Date table
-CREATE TABLE IF NOT EXISTS Analysis_Date (Analysis_Formation TIMESTAMP);
+-- Create the analysis_date table
+CREATE TABLE IF NOT EXISTS analysis_date(
+    analysis_formation TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS segments(
+    segment BIGINT PRIMARY KEY,
+    average_check VARCHAR NOT NULL,
+    frequency_of_purchases VARCHAR NOT NULL,
+    churn_probability VARCHAR NOT NULL
+);
 
 -- Procedure for importing data
 CREATE OR REPLACE PROCEDURE import(
-  table_name TEXT, file_path TEXT, delimiter TEXT
-) LANGUAGE plpgsql AS $$ BEGIN EXECUTE format(
-  'COPY %I FROM %L WITH CSV DELIMITER %L', 
-  table_name, file_path, delimiter
-);
+    table_name TEXT,
+    file_path TEXT,
+    DELIMITER TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    EXECUTE FORMAT('COPY %I FROM %L WITH CSV DELIMITER %L', table_name, file_path, DELIMITER);
 END;
 $$;
 
 -- Procedure for exporting data
 CREATE OR REPLACE PROCEDURE export(
-  table_name TEXT, file_path TEXT, delimiter TEXT
-) LANGUAGE plpgsql AS $$ BEGIN EXECUTE format(
-  'COPY %I TO %L WITH CSV DELIMITER %L', 
-  table_name, file_path, delimiter
-);
+    table_name TEXT,
+    file_path TEXT,
+    DELIMITER TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    EXECUTE FORMAT('COPY %I TO %L WITH CSV DELIMITER %L', table_name, file_path, DELIMITER);
 END;
+$$;
+
+--@block
+DO $$
+DECLARE
+    -- set to '_Mini' to import mini dataset
+    -- set to '' to import- full dataset
+    dataset_type TEXT := '';
+BEGIN
+    CALL import('customers', '/home/Personal_Data' || dataset_type || '.tsv', E'\t');
+    CALL import('cards', '/home/Cards' || dataset_type || '.tsv', E'\t');
+    CALL import('product_groups', '/home/Groups_SKU' || dataset_type || '.tsv', E'\t');
+    CALL import('products', '/home/SKU' || dataset_type || '.tsv', E'\t');
+    CALL import('stores', '/home/Stores' || dataset_type || '.tsv', E'\t');
+    CALL import('transactions', '/home/Transactions' || dataset_type || '.tsv', E'\t');
+    CALL import('checks', '/home/Checks' || dataset_type || '.tsv', E'\t');
+    CALL import('analysis_date', '/home/Date_Of_Analysis_Formation.tsv', E'\t');
+    CALL import('segments', '/home/Segments.tsv', E'\t');
+END
 $$;

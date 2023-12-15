@@ -146,4 +146,7 @@ FROM
     LEFT JOIN customer_margin() cm ON p.customer_id = cm.customer_id
         AND p.group_id = cm.group_id
     LEFT JOIN discounts d ON p.customer_id = d.customer_id
-        AND p.group_id = d.group_id;
+        AND p.group_id = d.group_id
+ORDER BY
+    customer_id,
+    group_id;

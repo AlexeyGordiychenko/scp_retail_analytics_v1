@@ -15,4 +15,8 @@ FROM
     LEFT JOIN stores s ON ct.transaction_store_id = s.transaction_store_id
         AND ch.sku_id = s.sku_id
 GROUP BY
-    customer_id, ct.transaction_id, transaction_datetime, group_id;
+    customer_id, ct.transaction_id, transaction_datetime, group_id
+ORDER BY
+    customer_id,
+    transaction_id,
+    group_id;

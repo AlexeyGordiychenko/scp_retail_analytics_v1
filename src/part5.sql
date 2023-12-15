@@ -1,5 +1,3 @@
-DROP FUNCTION personal_offers_visits;
-
 CREATE OR REPLACE FUNCTION personal_offers_visits (IN first_date TIMESTAMP,
 													IN last_date TIMESTAMP,
 													number_transactions INT,
@@ -16,25 +14,24 @@ RETURNS TABLE (customer_id BIGINT,
 AS $$
 BEGIN
 	RETURN QUERY
-	WITH max_discount AS
-	(SELECT vph.customer_id,
-			vph.group_id,
-			(CASE 
-				WHEN AVG(group_summ_paid - group_cost) < 0 THEN 0
-				ELSE margin_share * AVG(group_summ_paid - group_cost) / 100.0 
-			END) AS max_discount
-	FROM v_purchase_history vph
-	GROUP BY vph.customer_id, vph.group_id
-	ORDER BY vph.customer_id, vph.group_id),
+	WITH max_discount AS(
+        SELECT
+            p.group_id,
+            SUM(s.sku_retail_price - s.sku_purchase_price) / SUM(s.sku_retail_price) AS max_discount
+        FROM
+            products p
+            JOIN stores s ON p.sku_id = s.sku_id
+        GROUP BY
+            p.group_id
+    ),
 	groups AS 	
 	(SELECT vg.customer_id,
 			vg.group_id,
 			(ceil(group_minimum_discount/0.05)*0.05 * 100)::INT AS ceil_minimum_discount,
 			ROW_NUMBER() OVER (PARTITION BY vg.customer_id ORDER BY group_affinity_index DESC) AS max_affinity_index
 	FROM v_groups vg
-	JOIN max_discount md ON vg.customer_id = md.customer_id
-							AND vg.group_id = md.group_id	
-	WHERE (ceil(group_minimum_discount/0.05)*0.05 * 100)::INT < md.max_discount 							
+	JOIN max_discount md ON vg.group_id = md.group_id	
+	WHERE (ceil(group_minimum_discount/0.05)*0.05 * 100)::INT < md.max_discount * margin_share 							
 		AND (group_discount_share * 100)::int < max_share_transactions_with_discount 
 		AND group_churn_rate <= max_churn_index
 	ORDER BY 1, 2)
@@ -51,12 +48,3 @@ BEGIN
 	ORDER BY 1;
 END;				
 $$ LANGUAGE PLPGSQL;
-
-
-SELECT *
-FROM personal_offers_visits('18.08.2022 00:00:00', 
-							'18.08.2022 00:00:00', 
-							1,
-							3, 
-							70, 
-							30);
