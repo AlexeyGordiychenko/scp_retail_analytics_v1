@@ -15,6 +15,10 @@ SELECT * FROM v_periods;
 SELECT * FROM v_groups;
 
 --@block
+--@label part4
+SELECT * FROM average_check_offers(2, '2018-01-01', '2023-12-31', 100, 1.15, 3, 70, 30);
+
+--@block
 --@label part5
 SELECT *
 FROM personal_offers_visits('2022-08-18 00:00:00', '2022-08-18 00:00:00', 1, 3, 70, 30);
