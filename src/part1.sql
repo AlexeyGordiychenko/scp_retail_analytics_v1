@@ -112,7 +112,7 @@ DO $$
 DECLARE
     -- set to '_Mini' to import mini dataset
     -- set to '' to import- full dataset
-    dataset_type TEXT := '';
+    dataset_type TEXT := '_Mini';
 BEGIN
     CALL import('customers', '/home/Personal_Data' || dataset_type || '.tsv', E'\t');
     CALL import('cards', '/home/Cards' || dataset_type || '.tsv', E'\t');

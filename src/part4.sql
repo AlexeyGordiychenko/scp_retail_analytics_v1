@@ -24,66 +24,66 @@ BEGIN
         avg_summ,
         sku,
         discount
-    FROM(
-            WITH purchases AS (
-                SELECT
-                    (AVG(v_purchase_history.group_summ) - AVG(v_purchase_history.group_cost)) * margin_share / AVG(v_purchase_history.group_cost) AS discount_depth,
-                    v_purchase_history.customer_id,
-                    v_purchase_history.group_id
-                FROM
-                    v_purchase_history
-                GROUP BY
-                    v_purchase_history.customer_id,
-                    v_purchase_history.group_id
-            ),
-            transactions_data AS (
-                SELECT
-                    cards.customer_id AS id,
-                    transactions.transaction_summ AS summ,
-                    COALESCE(
-                        ROW_NUMBER() OVER (
-                            PARTITION BY cards.customer_id
-                            ORDER BY transactions.transaction_datetime DESC
-                        )
-                    ) AS transactions_count,
-                    product_groups.group_name AS sku,
-                    v_groups.group_affinity_index AS affinity_idx,
-                    v_groups.group_minimum_discount AS min_discount,
-                    discount_depth
-                FROM
-                    transactions
-                    INNER JOIN cards ON cards.customer_card_id = transactions.customer_card_id
-                    INNER JOIN v_groups ON v_groups.customer_id = cards.customer_id
-                    INNER JOIN product_groups ON product_groups.group_id = v_groups.group_id
-                    INNER JOIN purchases ON purchases.customer_id = cards.customer_id
-                    AND purchases.group_id = v_groups.group_id
-                WHERE
-                    v_groups.group_discount_share < max_discount_share / 100
-                    AND v_groups.group_churn_rate <= max_churn_index
-                    AND (method = 1 AND transactions.transaction_datetime BETWEEN first_date AND last_date) OR method = 2
-            )
+    FROM (
+        WITH purchases AS (
             SELECT
-                DISTINCT id,
-                AVG(summ) OVER (PARTITION BY id) * avg_check_coefficient AS avg_summ,
+                (AVG(v_purchase_history.group_summ) - AVG(v_purchase_history.group_cost)) * margin_share / AVG(v_purchase_history.group_cost) AS discount_depth,
+                v_purchase_history.customer_id,
+                v_purchase_history.group_id
+            FROM
+                v_purchase_history
+            GROUP BY
+                v_purchase_history.customer_id,
+                v_purchase_history.group_id
+        ),
+        transactions_data AS (
+            SELECT
+                cards.customer_id AS id,
+                transactions.transaction_summ AS summ,
+                COALESCE(
+                    ROW_NUMBER() OVER (
+                        PARTITION BY cards.customer_id
+                        ORDER BY transactions.transaction_datetime DESC
+                    )
+                ) AS transactions_count,
+                product_groups.group_name AS sku,
+                v_groups.group_affinity_index AS affinity_idx,
+                v_groups.group_minimum_discount AS min_discount,
+                discount_depth
+            FROM
+                transactions
+                INNER JOIN cards ON cards.customer_card_id = transactions.customer_card_id
+                INNER JOIN v_groups ON v_groups.customer_id = cards.customer_id
+                INNER JOIN product_groups ON product_groups.group_id = v_groups.group_id
+                INNER JOIN purchases ON purchases.customer_id = cards.customer_id
+                AND purchases.group_id = v_groups.group_id
+            WHERE
+                v_groups.group_discount_share < max_discount_share / 100
+                AND v_groups.group_churn_rate <= max_churn_index
+                AND ((method = 1 AND transactions.transaction_datetime BETWEEN first_date AND last_date) OR method = 2)
+        )
+        SELECT DISTINCT ON (id)
+            id,
+            AVG(summ) OVER (PARTITION BY id) * avg_check_coefficient AS avg_summ,
+            sku,
+            affinity_idx,
+            CEIL(min_discount * 20) * 5 AS discount
+        FROM (
+            SELECT
+                id,
+                summ,
                 sku,
                 affinity_idx,
-                CEIL(min_discount * 20) * 5 AS discount
-            FROM(
-                    SELECT
-                        id,
-                        summ,
-                        sku,
-                        affinity_idx,
-                        MAX(affinity_idx) OVER (PARTITION BY id) AS max_affinity_idx,
-                        min_discount,
-                        discount_depth
-                    FROM
-                        transactions_data
-                    WHERE method = 1 OR (method = 2 AND transactions_count <= transactions_amount)
-                ) AS t
-            WHERE
-                CEIL(min_discount * 20) * 5 < discount_depth
-            ORDER BY
-                affinity_idx DESC
-        ) AS t;
+                MAX(affinity_idx) OVER (PARTITION BY id) AS max_affinity_idx,
+                min_discount,
+                discount_depth
+            FROM
+                transactions_data
+            WHERE method = 1 OR (method = 2 AND transactions_count <= transactions_amount)
+        ) AS t
+        WHERE
+            CEIL(min_discount * 20) * 5 < discount_depth
+        ORDER BY
+            id, affinity_idx DESC
+    ) AS t;
 END; $$;
