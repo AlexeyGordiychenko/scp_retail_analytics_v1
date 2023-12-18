@@ -27,7 +27,7 @@ BEGIN
     FROM (
         WITH purchases AS (
             SELECT
-                (AVG(v_purchase_history.group_summ) - AVG(v_purchase_history.group_cost)) * margin_share / AVG(v_purchase_history.group_cost) AS discount_depth,
+                SUM(group_summ_paid - group_cost) / SUM(group_summ_paid) * margin_share AS discount_depth,
                 v_purchase_history.customer_id,
                 v_purchase_history.group_id
             FROM
