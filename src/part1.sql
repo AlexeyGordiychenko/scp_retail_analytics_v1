@@ -1,3 +1,6 @@
+-- DROP DATABASE IF EXISTS Retail_Analytics;
+-- CREATE DATABASE Retail_Analytics;
+
 --@block
 DROP TABLE IF EXISTS customers CASCADE;
 DROP TABLE IF EXISTS cards CASCADE;
@@ -84,8 +87,7 @@ CREATE TABLE IF NOT EXISTS segments(
 -- Procedure for importing data
 CREATE OR REPLACE PROCEDURE import(
     table_name TEXT,
-    file_path TEXT,
-    DELIMITER TEXT
+    file_path TEXT,  DELIMITER TEXT
 )
 LANGUAGE plpgsql
 AS $$
