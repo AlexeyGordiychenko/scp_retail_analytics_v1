@@ -2,6 +2,29 @@
 
 Retail analytics data upload, its simple analysis, statistics, customer segmentation and creation of personal offers.
 
+## My part of the project
+
+My part was to:
++ Configure docker to run the database
++ [Part 3](#part-3-role-model) of the task
++ [Part 6](#part-6-forming-personal-offers-aimed-at-cross-selling) of the task
++ [Part 2](#part-2-creating-views) optimizations
+
+So for my code you can check files:
+
++ [docker/](./src/docker)
++ [part3.sql](./src/part3.sql)
++ [part6.sql](./src/part6.sql)
++ [part2_1_CustomersView.sql](./src/part2_1_CustomersView.sql)
++ [part2_2_PurchaseHistoryView.sql](./src/part2_2_PurchaseHistoryView.sql)
++ [part2_3_PeriodsView.sql](./src/part2_3_PeriodsView.sql)
++ [part2_4_GroupsView.sql](./src/part2_4_GroupsView.sql)
+
+
+## Score:
+
+The final score is 100% (max).
+
 ## Task
 
 Create a database with knowledge of retailers' customers, and write the views and procedures needed to create personal offers.
